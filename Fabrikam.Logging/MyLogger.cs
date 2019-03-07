@@ -1,6 +1,6 @@
 ﻿using System;
 using System.IO;
-
+using System.Runtime.InteropServices;
 using Microsoft.Win32;
 using Newtonsoft.Json;
 
@@ -46,10 +46,15 @@ namespace Fabrikam.Logging
 
         private static string GetLoggingDirectory()
         {
-            using (var key = Registry.CurrentUser.OpenSubKey(@"Software\Fabrikam"))
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                if (key?.GetValue("LoggingDirectoryPath") is string configuredPath)
-                    return configuredPath;
+                #pragma warning disable PC001 // API not supported on all platforms
+                using (var key = Registry.CurrentUser.OpenSubKey(@"Software\Fabrikam"))
+                {
+                    if (key?.GetValue("LoggingDirectoryPath") is string configuredPath)
+                        return configuredPath;
+                }
+                #pragma warning restore PC001
             }
 
             var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
